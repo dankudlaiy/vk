@@ -14,13 +14,13 @@ namespace Eq
         {
             InitializeComponent();
             
+            DotNetEnv.Env.Load();
+            
             var textBox = new TextBox
             {
                 Location = new Point(15, 15),
                 Width = 200,
-                PlaceholderText = "vk playlist url",
-                //Text = "https://vk.com/music/playlist/571496731_3"
-                Text = "https://vk.com/music/playlist/165290425_76527470"
+                PlaceholderText = "vk playlist url"
             };
             
             Controls.Add(textBox);
@@ -121,9 +121,12 @@ namespace Eq
                 {
                     var scopes = Uri.EscapeDataString("user-read-private user-read-email playlist-modify-public playlist-modify-private");
                     
+                    var clientId = Environment.GetEnvironmentVariable("CLIENTID") ?? 
+                                   throw new InvalidOperationException("Can not retrieve client id from .env file");
+                    
                     Process.Start(new ProcessStartInfo
                     {
-                        FileName = $"https://accounts.spotify.com/authorize?client_id={SpotifyClient.ClientId}&response_type=code&redirect_uri=" 
+                        FileName = $"https://accounts.spotify.com/authorize?client_id={clientId}&response_type=code&redirect_uri=" 
                                    + Uri.EscapeDataString(SpotifyClient.RedirectUri) + $"&scope={scopes}",
                         UseShellExecute = true
                     });

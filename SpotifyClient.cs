@@ -8,15 +8,25 @@ using Newtonsoft.Json.Linq;
 
 namespace Eq;
 
+// ReSharper disable once ClassNeverInstantiated.Global
 public class SpotifyClient
 {
-    public const string ClientId = "4fef1cbb12fa458eabfc76ebe6954d1e";
-    
-    private const string ClientSecret = "a784b19e41f0464b8480226fed3af16a";
-    
     public const string RedirectUri = "http://localhost:5000/api/callback";
 
     private readonly HttpClient _httpClient = new();
+
+    private readonly string _clientId;
+    private readonly string _clientSecret;
+
+    public SpotifyClient()
+    {
+        DotNetEnv.Env.Load();
+        
+        _clientId = Environment.GetEnvironmentVariable("CLIENTID") ?? 
+                    throw new InvalidOperationException("Can not retrieve client id from .env file");
+        _clientSecret = Environment.GetEnvironmentVariable("CLIENTSECRET") ?? 
+                        throw new InvalidOperationException("Can not retrieve client secret from .env file");
+    }
 
     public async Task<TrackModel?> SearchForTrack(string trackName)
     {
@@ -111,7 +121,7 @@ public class SpotifyClient
     {
         using var request = new HttpRequestMessage(new HttpMethod("POST"), "https://accounts.spotify.com/api/token");
         
-        var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{ClientId}:{ClientSecret}"));
+        var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_clientId}:{_clientSecret}"));
         request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
 
         request.Content = new StringContent($"grant_type=authorization_code&code={authToken}&redirect_uri={Uri.EscapeDataString(RedirectUri)}");
@@ -130,7 +140,7 @@ public class SpotifyClient
         var request = new HttpRequestMessage(HttpMethod.Post, "https://accounts.spotify.com/api/token");
 
         request.Headers.Add("Authorization", $"Basic {Convert.ToBase64String(
-            Encoding.UTF8.GetBytes($"{ClientId}:{ClientSecret}"))}");
+            Encoding.UTF8.GetBytes($"{_clientId}:{_clientSecret}"))}");
 
         var bodyData = new List<KeyValuePair<string?, string?>>
         {
